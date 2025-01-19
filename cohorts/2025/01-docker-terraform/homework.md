@@ -20,7 +20,7 @@ Run docker with the `python:3.12.8` image in an interactive mode, use the entryp
 
 What's the version of `pip` in the image?
 
-- 24.3.1
+X 24.3.1
 - 24.2.1
 - 23.3.1
 - 23.2.1
@@ -66,7 +66,7 @@ volumes:
 - localhost:5432
 - db:5433
 - postgres:5432
-- db:5432
+X db:5432
 
 If there are more than one answers, select only one of them
 
@@ -101,11 +101,46 @@ During the period of October 1st 2019 (inclusive) and November 1st 2019 (exclusi
 
 Answers:
 
+with distance_under_1 as (
+SELECT count(*)
+FROM green_taxi_oct_2019 gt 
+where gt.trip_distance <= 1
+),
+distance_1_to_3 as (
+SELECT count(*)
+FROM green_taxi_oct_2019 gt 
+where gt.trip_distance > 1
+and gt.trip_distance <= 3
+),
+distance_3_to_7 as (
+SELECT count(*)
+FROM green_taxi_oct_2019 gt 
+where gt.trip_distance > 3
+and gt.trip_distance <= 7
+),
+distance_7_to_10 as (
+SELECT count(*)
+FROM green_taxi_oct_2019 gt 
+where gt.trip_distance > 7
+and gt.trip_distance <= 10
+),
+distance_over_10 as (
+SELECT count(*)
+FROM green_taxi_oct_2019 gt 
+where gt.trip_distance > 10
+)
+select *
+from distance_under_1
+cross join distance_1_to_3
+cross join distance_3_to_7
+cross join distance_7_to_10
+cross join distance_over_10
+
 - 104,802;  197,670;  110,612;  27,831;  35,281
 - 104,802;  198,924;  109,603;  27,678;  35,189
 - 104,793;  201,407;  110,612;  27,831;  35,281
 - 104,793;  202,661;  109,603;  27,678;  35,189
-- 104,838;  199,013;  109,645;  27,688;  35,202
+X 104,838;  199,013;  109,645;  27,688;  35,202
 
 
 ## Question 4. Longest trip for each day
@@ -115,10 +150,24 @@ Use the pick up time for your calculations.
 
 Tip: For every day, we only care about one single trip with the longest distance. 
 
+SELECT
+trip_distance,
+lpep_pickup_datetime, 
+lpep_dropoff_datetime,
+COALESCE(zpu."Borough", 'Outside of NYC') as pickup_borough,
+zpu."Zone" as pickup_zone,
+COALESCE(zdo."Borough", 'Outside of NYC') as dropoff_borough,
+zdo."Zone" as dropoff_zone
+FROM green_taxi_oct_2019 gt 
+join zones zpu on zpu."LocationID" = gt."PULocationID"
+join zones zdo on gt."DOLocationID" = zdo."LocationID"
+order by trip_distance desc
+limit 5;
+
 - 2019-10-11
 - 2019-10-24
 - 2019-10-26
-- 2019-10-31
+X 2019-10-31
 
 
 ## Question 5. Three biggest pickup zones
@@ -128,7 +177,18 @@ Which were the top pickup locations with over 13,000 in
 
 Consider only `lpep_pickup_datetime` when filtering by date.
  
-- East Harlem North, East Harlem South, Morningside Heights
+SELECT
+ROUND(CAST(SUM(total_amount) AS NUMERIC), 2) AS total_amount,
+zpu."Zone" as pickup_zone        
+FROM green_taxi_oct_2019 gt 
+join zones zpu on zpu."LocationID" = gt."PULocationID"
+join zones zdo on gt."DOLocationID" = zdo."LocationID"
+where cast(lpep_pickup_datetime AS DATE) = to_date('2019-10-18', 'YYYY-MM-DD')
+group by 
+zpu."Zone"
+order by total_amount desc
+
+X East Harlem North, East Harlem South, Morningside Heights
 - East Harlem North, Morningside Heights
 - Morningside Heights, Astoria Park, East Harlem South
 - Bedford, East Harlem North, Astoria Park
@@ -144,8 +204,17 @@ Note: it's `tip` , not `trip`
 
 We need the name of the zone, not the ID.
 
+SELECT
+gt.tip_amount,
+zpu."Zone" as pickup_zone,
+COALESCE(zpu."Borough", 'Outside of NYC') as Borough
+FROM green_taxi_oct_2019 gt 
+join zones zpu on zpu."LocationID" = gt."PULocationID"
+join zones zdo on gt."DOLocationID" = zdo."LocationID"
+order by gt.tip_amount desc
+
 - Yorkville West
-- JFK Airport
+X JFK Airport
 - East Harlem North
 - East Harlem South
 
@@ -172,7 +241,7 @@ Answers:
 - terraform import, terraform apply -y, terraform destroy
 - teraform init, terraform plan -auto-apply, terraform rm
 - terraform init, terraform run -auto-approve, terraform destroy
-- terraform init, terraform apply -auto-approve, terraform destroy
+X terraform init, terraform apply -auto-approve, terraform destroy
 - terraform import, terraform apply -y, terraform rm
 
 
