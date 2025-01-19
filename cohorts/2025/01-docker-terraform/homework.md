@@ -101,7 +101,7 @@ During the period of October 1st 2019 (inclusive) and November 1st 2019 (exclusi
 
 Answers:
 
-with distance_under_1 as (
+```with distance_under_1 as (
 SELECT count(*)
 FROM green_taxi_oct_2019 gt 
 where gt.trip_distance <= 1
@@ -135,6 +135,7 @@ cross join distance_1_to_3
 cross join distance_3_to_7
 cross join distance_7_to_10
 cross join distance_over_10
+```
 
 - 104,802;  197,670;  110,612;  27,831;  35,281
 - 104,802;  198,924;  109,603;  27,678;  35,189
@@ -150,6 +151,7 @@ Use the pick up time for your calculations.
 
 Tip: For every day, we only care about one single trip with the longest distance. 
 
+```
 SELECT
 trip_distance,
 lpep_pickup_datetime, 
@@ -163,6 +165,7 @@ join zones zpu on zpu."LocationID" = gt."PULocationID"
 join zones zdo on gt."DOLocationID" = zdo."LocationID"
 order by trip_distance desc
 limit 5;
+```
 
 - 2019-10-11
 - 2019-10-24
@@ -176,7 +179,8 @@ Which were the top pickup locations with over 13,000 in
 `total_amount` (across all trips) for 2019-10-18?
 
 Consider only `lpep_pickup_datetime` when filtering by date.
- 
+
+```
 SELECT
 ROUND(CAST(SUM(total_amount) AS NUMERIC), 2) AS total_amount,
 zpu."Zone" as pickup_zone        
@@ -187,6 +191,7 @@ where cast(lpep_pickup_datetime AS DATE) = to_date('2019-10-18', 'YYYY-MM-DD')
 group by 
 zpu."Zone"
 order by total_amount desc
+```
 
 X East Harlem North, East Harlem South, Morningside Heights
 - East Harlem North, Morningside Heights
@@ -204,6 +209,7 @@ Note: it's `tip` , not `trip`
 
 We need the name of the zone, not the ID.
 
+```
 SELECT
 gt.tip_amount,
 zpu."Zone" as pickup_zone,
@@ -212,6 +218,7 @@ FROM green_taxi_oct_2019 gt
 join zones zpu on zpu."LocationID" = gt."PULocationID"
 join zones zdo on gt."DOLocationID" = zdo."LocationID"
 order by gt.tip_amount desc
+```
 
 - Yorkville West
 X JFK Airport
